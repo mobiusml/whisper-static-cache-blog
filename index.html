@@ -70,10 +70,8 @@
 		</header>
 		<div class="page-body">
 			<p><a href="https://scholar.google.de/citations?user=KcoTPWoAAAAJ&hl=en"><mark
-						class="highlight-gray">Jilt Sebastian</mark></a><mark class="highlight-gray">, </mark></p>
-						<p><a href="https://scholar.google.com/citations?user=LxweMX4AAAAJ&hl=en"><mark
-						class="highlight-gray">Hicham Badri</mark></a><mark class="highlight-gray">, </mark></p>
-						<p><a
+						class="highlight-gray">Jilt Sebastian</mark></a><mark class="highlight-gray">, </mark>,<a href="https://scholar.google.com/citations?user=LxweMX4AAAAJ&hl=en"><mark
+						class="highlight-gray">Hicham Badri</mark></a><mark class="highlight-gray">, </mark>,<a
 					href="https://scholar.google.com/citations?user=HxZDDzUAAAAJ&hl=en"><mark
 						class="highlight-gray">Appu Shaji</mark></a><mark class="highlight-gray"></mark></p>
 			<p><mark class="highlight-gray"><a href="https://www.mobiuslabs.com/"><mark class="highlight-gray">Mobius
@@ -84,7 +82,7 @@
 
 			<p>In this blog post, we explain the techniques we used to enhance the performance of the Huggingface Whisper model. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed HQQ to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a 4.5x speedup for non-quantized models and an impressive 6x speedup for quantized models.</p>
 
-			<p></p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
+			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
 
 
 
@@ -150,13 +148,60 @@
 			
 					
 					<h2 id="workhorse" class="">Speed Optimization </h2>
-					foo
+					<p><a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a> compiles PyTorch models into optimized kernels and can often result in significant speedups for various PyTorch-based models. One of the prerequisites and critical steps toward achieving this is managing a static kv-cache, as detailed in <a href="https://pytorch.org/blog/accelerating-generative-ai-2/">https://pytorch.org/blog/accelerating-generative-ai-2/</a>. During inference, the kv-cache stores activations. However, due to varying prompts and generation lengths, these caches can have dynamic lengths, which creates overhead. Instead, torch.compile methods require caches to be maintained statically by allocating the maximum size of the kv-cache and masking out unused values. The first step we took was to implement a static cache for the Whisper model to make it possible to use JIT compile backends. A gist of the implementation is available <a href="https://gist.github.com/huseinzol05/9aff34ec1427ee8c92240cb4f3cc0c88">here</a>.</p>
+
 					
 					<h2 id="prior" class="">Quantization</h2>
-					foo
+					<p>We further quantized models to 4 bits using <a href="https://github.com/mobiusml/hqq">Half-Quadratic Quantization (HQQ)</a>. HQQ is a fast and accurate model quantizer that does not need any calibration data. Additionally, it supports torch.compile backends. Though quantization techniques can reduce VRAM requirements, they often suffer from slower speed due to additional dequantization steps. However, recent developments have introduced new kernels that can perform quantized operations directly on the GPU by bit packing (<a href="https://pytorch.org/cppdocs/api/function_namespaceat_1adeda9630914278ac02d7fd758da19e3d.html">source</a>), and HQQ can leverage these kernels (<a href="https://github.com/mobiusml/hqq/blob/aad68687e042ed628b5a655969406d501a203949/hqq/backends/torchao.py#L295">source</a>). Note that these kernels are optimized for 4-bit GPUs with Ampere architecture (A100, A6000, RTX 3090, RTX 4090).</p>
+
+					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements can be reduced by a factor of 3 to 4.</p>
 								
 					<h2 id="Static Cache"">Benchmarks</h2>
 					<p>foo</p>
+
+					<table>
+						<caption>Speed up: The metric indicates how many times faster than real-time speed (standard deviation is in brackets).</caption>
+						<tr>
+							<th>Dataset</th>
+							<th>Avg. Lenght</th>						
+							<th>Sampling Methodolgy</th>
+							<th>Baseline</th>
+							<th>Torch Compile</th>
+							<th>Torch Compile + HQQ</th>
+						</tr>
+						<tr>
+							<td>TEDLIUM</td>
+							<td>8 secs (4)</td>							
+							<td>no sampling</td>
+							<td>11.6x (4.06%)</td>
+							<td>35.3x (4.06%)</td>
+							<td>37.3x (4.0%)</td>							
+						</tr>
+						<tr>
+							<td>Voxpopuli</td>
+							<td>10 secs (8)</td>
+							<td>no sampling</td>
+							<td>14.2x (7.84%)</td>
+							<td>42.6x (7.82%)</td>
+							<td>47.9x (7.91%)</td>
+						</tr>
+						<tr>
+							<td>Earnings22</td>
+							<td>7 secs (5)</td>							
+							<td>no sampling</td>
+							<td>12.8x (12.13%)</td>
+							<td>36.4x (12.15%)</td>
+							<td>42.9x (12.83%)</td>
+						</tr>
+						<tr>
+							<td>AMI</td>
+							<td>2 secs (3)</td>							
+							<td>no sampling</td>
+							<td>9.8x (16.67%)</td>
+							<td>20.8x (16.71%)</td>
+							<td>20.4x (16.69%)</td>
+						</tr>
+					</table>
 
 					
 					<h2 id="citations">Citation</h2>
