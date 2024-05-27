@@ -34,15 +34,15 @@
 	<link href="https://fonts.googleapis.com/css2?family=Oxygen&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet"> -->
 
 
-	<meta name="description" content="Speeding up Whisper ( ASR )">
+	<meta name="description" content="Fast and Small Whisper: The Power of Optimized Kernels and Quantization">
 
 	<meta name="keywords"
-		content="Whisper, ASR, Automatic Speech Recongition,  Machine Learning, Transformer Models, Neural Networks, AI Optimization, Faster Whisper">
+		content="Whisper, ASR, Automatic Speech Recongition,  Machine Learning, Transformer Models, Neural Networks, AI Optimization, Faster Whisper, Quantization, HQQ">
 
 	<meta name="Jilt Sebastain" content="Mobius Labs GmbH">
 
 	<!-- Specific tags for Open Graph / social media sharing -->
-	<meta property="og:title" content="Speeding up Whisper (ASR)">
+	<meta property="og:title" content="Fast and Small Whisper: The Power of Optimized Kernels and Quantization">
 	<meta property="og:description"
 		content="A support blog for speeding up whisper by batch processing.">
 	<meta property="og:image" content="https://mobiusml.github.io/batched_whisper_blog/figs/aana_batch_whisper.png">
@@ -82,8 +82,11 @@
 			<h2 id="intro" class="">Introduction</h2>
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's Whisper model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
-			<p>Our main contribution is ....</p>
-				<!--This refined version improves throughput by parallel processing audio segments identified as relevant through voice detection. We batch these segments together to boost overall processing speed. -->
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the Huggingface Whisper model. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed HQQ to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a 4.5x speedup for non-quantized models and an impressive 6x speedup for quantized models.</p>
+
+			<p></p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
+
+
 
 				
 			<hr id="header_seperator" />
@@ -146,13 +149,13 @@
 				<div style="width:75%" class="column">
 			
 					
-					<h2 id="workhorse" class="">Title </h2>
+					<h2 id="workhorse" class="">Speed Optimization </h2>
 					foo
 					
-					<h2 id="prior" class="">Prior work </h2>
+					<h2 id="prior" class="">Quantization</h2>
 					foo
 								
-					<h2 id="Static Cache"">Batch Processing for Speed</h2>
+					<h2 id="Static Cache"">Benchmarks</h2>
 					<p>foo</p>
 
 					
