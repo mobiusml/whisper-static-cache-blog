@@ -64,7 +64,7 @@
 <body>
 	<article id="speeding up whisper" class="page sans">
 		<header>
-			<h1 class="page-title">Fast and Small Whisper: The Power of Optimized Kernels and Quantization</h1>
+			<h1 class="page-title">Fast and Small Whisper via HQQ Quantization and Torch Compile</h1>
 
 		</header>
 		<div class="page-body">
@@ -175,38 +175,61 @@
 						<caption>The speed metric indicates how many times faster than real-time speed. The experiments are run on a RTX 4090 GPU.</caption>
 						<tr>
 							<th>Dataset</th>
-							<th>Audio Length (Avg and STD)</th>						
-							<th>Baseline </th>
-							<th>Torch Compile</th>
-							<th>Torch Compile + HQQ</th>
+							<th>Avg. Duration</th>						
+							<th colspan="2">Baseline</th>
+							<th colspan="2">Torch Compile</th>
+							<th colspan="2">Torch Compile + HQQ</th>
 						</tr>
 						<tr>
+							<th></th>
+							<th></th>						
+							<th>Speed</th>
+							<th>WER</th>
+							<th>Speed</th>
+							<th>WER</th>
+							<th>Speed</th>
+							<th>WER</th>
+							
+						</tr>				
+						<tr>
 							<td>TEDLIUM</td>
-							<td>8 secs (4)</td>							
-							<td>11.6x (4.06%)</td>
-							<td>35.3x (4.06%)</td>
-							<td>37.3x (4.0%)</td>							
+							<td>8 secs</td>							
+							<td>11.6x</td>
+							<td>4.06%</td>
+							<td>35.3x </td>
+							<td>4.06%</td>
+							<td>37.3x</td>							
+							<td>4.0%</td>
 						</tr>
 						<tr>
 							<td>Voxpopuli</td>
-							<td>10 secs (8)</td>							
-							<td>14.2x (7.84%)</td>
-							<td>42.6x (7.82%)</td>
-							<td>47.9x (7.91%)</td>
+							<td>10 secs</td>							
+							<td>14.2x</td>
+							<td>7.84%</td>
+							<td>42.6x</td>
+							<td>7.84%</td>
+							<td>47.9x</td>
+							<td>7.91%</td>
 						</tr>
 						<tr>
 							<td>Earnings22</td>
-							<td>7 secs (5)</td>														
-							<td>12.8x (12.13%)</td>
-							<td>36.4x (12.15%)</td>
-							<td>42.9x (12.83%)</td>
+							<td>7 secs</td>														
+							<td>12.8x</td>
+							<td>12.13%</td>
+							<td>36.4x</td>
+							<td>12.15%</td>
+							<td>42.9x</td>
+							<td>12.83%</td>
 						</tr>
 						<tr>
 							<td>AMI</td>
-							<td>2 secs (3)</td>														
-							<td>9.8x (16.67%)</td>
-							<td>20.8x (16.71%)</td>
-							<td>20.4x (16.69%)</td>
+							<td>2 secs</td>														
+							<td>9.8x</td>
+							<td>16.67%</td>
+							<td>20.8x </td>
+							<td>16.71%</td>
+							<td>20.4x </td>
+							<td>16.69%</td>
 						</tr>
 					</table>
 				<h3>Real-word Scenario: Long Audios</h3>
@@ -267,6 +290,14 @@
 					<td>316.4</td>
 				</tr>
 			</table>
+
+
+			<h3>Caveats</h3>
+
+			<p>A few caveats to note</p>
+			<ol>
+				<li>The TorchAO kernels required modern GPUs: Amphere, RTX series and above.</li>
+			</ol>
 
 
 
