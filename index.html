@@ -148,7 +148,9 @@
 			
 					
 					<h2 id="speed-optimization" class="">Speed Optimization </h2>
-					<p><a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a> compiles PyTorch models into optimized Triton kernels and can often result in significant speedups for various PyTorch-based models. One of the prerequisites and critical steps toward achieving this is managing a static KV-cache, as detailed in <a href="https://pytorch.org/blog/accelerating-generative-ai-2/">https://pytorch.org/blog/accelerating-generative-ai-2/</a>. During inference, the KV-cache stores intermediate outputs of the model in the attention modules. However, due to varying prompts and generation lengths, these caches are implemented via <a href="https://github.com/openai/whisper/blob/ba3f3cd54b0e5b8ce1ab3de13e32122d0d5f98ab/whisper/model.py#L301">dynamic allocation</a>, which creates overhead. Instead, torch.compile requires the KV-cache to be maintained statically by pre-allocating the maximum size. The first step we took was to implement a static cache for the Whisper model to make it fully compatible with torch.compile. A gist of the implementation is available <a href="https://gist.github.com/huseinzol05/9aff34ec1427ee8c92240cb4f3cc0c88">here</a>. This is the first attempt at introducing a static cache for Encoder-Decoder models.</p>
+					<p><a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a> compiles PyTorch models into optimized Triton kernels and can often result in significant speedups for various PyTorch-based models. One of the prerequisites and critical steps toward achieving this is managing a static KV-cache, as detailed in <a href="https://pytorch.org/blog/accelerating-generative-ai-2/">https://pytorch.org/blog/accelerating-generative-ai-2/</a>. During inference, the KV-cache stores intermediate outputs of the model in the attention modules. However, due to varying prompts and generation lengths, these caches are implemented via <a href="https://github.com/openai/whisper/blob/ba3f3cd54b0e5b8ce1ab3de13e32122d0d5f98ab/whisper/model.py#L301">dynamic allocation</a>, which creates overhead. Instead, torch.compile requires the KV-cache to be maintained statically by pre-allocating the maximum size. </p>
+					
+					<p>The first step we took was to implement a static cache for the Whisper model to make it fully compatible with torch.compile. A gist of the implementation is available <a href="https://gist.github.com/huseinzol05/9aff34ec1427ee8c92240cb4f3cc0c88">here</a>. As far as we know, this is the first implementation of a <a href="https://github.com/huggingface/transformers/pull/30760#discussion_r1606974803">static cache for encoder-decoder models in the Transformers library</a>, and hopefully, it will be useful for other encoder-decoder architectures: GitHub link. </p>
 
 					
 					<h2 id="quantization" class="">Quantization</h2>
@@ -156,20 +158,21 @@
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder layer of Whisper. There are two major reasons for this:
-						<ul>
-							<li>The encoder contributes only marginally to the total run time as opposed to the decoder layer. The encoder layer includes only one forward pass, whereas the decoder layers have to be run many times, once per token generated.</li>
-							<li>More importantly, the encoder layer involves a lot of matrix-matrix computations, as opposed to the decoder layers, which are matrix-vector multiplications. The TorchAO kernels are optimized to speed up the latter. Therefore, we won't be able to leverage a speed-up and will result in inferior performance.</li>
-						</ul>
-					</p>
+					<p>We only quantize the decoder layer of Whisper for the following reason: The encoder layer involves a lot of matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV). The TorchAO kernels are optimized to speed up GEMV operations. Therefore, quantizing the encoder layer would not leverage a speed-up and would result in inferior performance.</p>
+
+					<p>Even if the encoder layer’s performance is optimized, its impact on the overall run time is marginal compared to the decoder layer. The encoder layer includes only one forward pass, whereas the decoder layers must be run many times, once per token generated.</p>
 								
 					<h2 id="benchmarks"">Benchmarks</h2>
-					<p>We conduct two sets of benchmarking experiments to validate the speed-up using torch.compile and HQQ. The hypothesis is that since the major inference time is contributed by the decoding part, these modifications significantly reduces the overall processing time. The <a href="https://huggingface.co/datasets/open-asr-leaderboard/datasets"> Open ASR eval dataset </a> is used in the first experiment to measure the speed improvement and effect on the WER. The <a href="https://openvoice-tech.net/index.php/Real-time-factor">Real Time Factor (RTF)</a> metric, commonly used in open-source benchmarks like <a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard">Open ASR Leaderboard</a> evaluation, measures the speed of offline ASR systems by comparing total processing time to audio duration. We use 1/RTF in our benchmarking experiments as it is more interpretable once the speed becomes faster than the real-time speed, which is a common offline ASR requirement. 
+					<p>We conducted two sets of benchmarking experiments to validate the speed-up using torch.compile and HQQ. The <a href="https://huggingface.co/datasets/open-asr-leaderboard/datasets">Open ASR eval dataset</a> is used in the first experiment to measure the speed improvement and effect on the WER, and a set of audio extracts from YouTube videos is used in the second benchmarking. We find that in real-life use cases, transcripts are generally long, hence the second dataset is included. We used the 'large-v2' model with a batch size of 1 and greedy decoding (no sampling) for the experiments.</p>
+						
+					<p>The <a href="https://openvoice-tech.net/index.php/Real-time-factor">Real Time Factor (RTF)</a> metric, commonly used in open-source benchmarks like <a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard">Open ASR Leaderboard</a> evaluation, measures the speed of offline ASR systems by comparing total processing time to audio duration. We use 1/RTF in our benchmarking experiments as it is more interpretable once the speed becomes faster than the real-time speed, which is a common offline ASR requirement. 
 					</p>
-					<p>These datasets represent short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets are used with audios less than 30 sec for the experiments. We used the 'large-v2' model with batch_size of 1 and greedy decoding (no sampling) for the experiments. 
-					</p>
+
+
+					<h3>Short-form Audio</h3>
+					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets are used with audios less than 30 seconds for the experiments.</p>
 						<table>
-						<caption>Speed up and WER (short audio): The speed metric indicates how many times faster than real-time speed. The experiments are run on a RTX 4090 GPU.</caption>
+						<caption>The speed metric indicates how many times faster than real-time speed. The experiments are run on a RTX 4090 GPU.</caption>
 						<tr>
 							<th>Dataset</th>
 							<th>Audio Length (Avg and STD)</th>						
@@ -206,6 +209,7 @@
 							<td>20.4x (16.69%)</td>
 						</tr>
 					</table>
+				<h3>Real-word Scenario: Long Audios</h3>
 				<p> In order to check the effect of these decoding methods in real-world scenarios with long audios, we used an internal test dataset with 84 minutes duration and verified ground truth. The test set contains 9 audios ranging from 3 minutes to 13 minutes and various audio types.</p>
 				<table>
 					<caption>Speed up and WER (long form audio)</caption>
@@ -220,7 +224,7 @@
 					<td>Speed</td>
 					<td>15.8x </td>
 					<td>57.6x </td>
-					<td>72.8x </td>							
+					<td>72.8x </td>			
 				</tr>
 				<tr>
 					<td>WER (%)</td>
@@ -228,12 +232,12 @@
 					<td>11.47</td>
 					<td>11.49</td>
 				</tr>
-				<tr>
+				<!-- <tr>
 					<td> Tokens/sec </td>
 					<td>49.5</td>
 					<td>243.4</td>
 					<td>316.4</td>
-				</tr>
+				</tr> -->
 				<tr>
 					<td> VRAM usage </td>
 					<td>8630 MiB</td>
@@ -242,7 +246,30 @@
 				</tr>
 			</table>
 
-			<p> The speed up in the actual processing time depends on the audio length. For datasets with larger audio lengths, the speed up is higher as there are more tokens to decode at a higher pace. This is evident in AMI corpus, where the speed up is around </b>2x </b> vs  the long form audio where the speed up is <b>4.6x</b> for the HQQ based approach. Note that the actual speed up in the decoding speed is <b>4.9x </b> for the torch.compile and <b>6.4x</b> for the torch compiled version of HQQ. </p>
+			<p>The speed-up in the actual processing time depends on the audio length. For datasets with larger audio lengths, the speed-up is higher as there are more tokens to decode at a higher pace, and the impact of optimization and quantization is more profound.</p> 
+			
+			<p>For example in AMI corpus which is a corpus with short videos with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and 3.6x for pytorch compiled one.</p>
+
+			<h4>Tokens per Second</h4>
+			<p>The significant speed-up and impact of optimization and quantization happens during decoder layers. The following table shows the tokens per second processed by the decoder layer for the long form audio dataset. </p>
+
+			<table>
+				<tr>
+					<td>Baseline</td>
+					<td>49.5</td>
+				</tr>
+				<tr>
+					<td>Torch Compile</td>
+					<td>243.4</td>
+				</tr>
+				<tr>
+					<td>Torch Compile + HQQ</td>
+					<td>316.4</td>
+				</tr>
+			</table>
+
+
+
 					
 					<h2 id="citations">Citation</h2>
 					<div>								
