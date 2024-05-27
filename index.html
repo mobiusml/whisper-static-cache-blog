@@ -1,0 +1,196 @@
+<html>
+<!DOCTYPE html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+	<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"> -->
+	<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"> -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+	<script>hljs.highlightAll();</script>
+	<script>
+		function copyCode() {
+		  const codeElement = document.querySelector('pre code');
+		  const codeText = codeElement.innerText;
+		  navigator.clipboard.writeText(codeText);
+		  // Optionally provide user feedback, e.g., changing the button text
+		}
+	  </script>
+
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/latest.min.js"></script> -->
+
+	<title>Speeding up Whisper</title>
+	<link rel="stylesheet" type="text/css" href="styling.css">
+	<link rel="icon" type="image/png" href="figs/aana_logo.png">	
+	<link rel="stylesheet" href="https://use.typekit.net/pnf5khj.css">
+	<!-- <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'> -->
+	<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+
+	<!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Oxygen&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet"> -->
+
+
+	<meta name="description" content="Speeding up Whisper ( ASR )">
+
+	<meta name="keywords"
+		content="Whisper, ASR, Automatic Speech Recongition,  Machine Learning, Transformer Models, Neural Networks, AI Optimization, Faster Whisper">
+
+	<meta name="Jilt Sebastain" content="Mobius Labs GmbH">
+
+	<!-- Specific tags for Open Graph / social media sharing -->
+	<meta property="og:title" content="Speeding up Whisper (ASR)">
+	<meta property="og:description"
+		content="A support blog for speeding up whisper by batch processing.">
+	<meta property="og:image" content="https://mobiusml.github.io/batched_whisper_blog/figs/aana_batch_whisper.png">
+	<meta property="og:url" content="https://mobiusml.github.io/batched_whisper_blog/">
+	<meta property="og:type" content="article">
+
+	<!-- Twitter Card data -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Speeding up Whisper (ASR)"">
+	<meta name="twitter:description"
+		content="A support blog for the release of 1-bit Aana model.">
+	<meta name="twitter:image" content=https://mobiusml.github.io/batched_whisper_blog/figs/aana_batch_whisper.png">
+	<meta name="twitter:creator" content="@appughar">
+
+	<!-- Meta tags for article publishing date and modification date -->
+	<meta name="article:published_time" content="2024-03-27T08:00:00+00:00">
+	<meta name="article:modified_time" content="2024-03-27T09:00:00+00:00">
+</head>
+
+<body>
+	<article id="speeding up whisper" class="page sans">
+		<header>
+			<h1 class="page-title">Title</h1>
+
+		</header>
+		<div class="page-body">
+			<p><a href="https://scholar.google.de/citations?user=KcoTPWoAAAAJ&hl=en"><mark
+						class="highlight-gray">Jilt Sebastian</mark></a><mark class="highlight-gray">, </mark></p>
+						<p><a href="https://scholar.google.com/citations?user=LxweMX4AAAAJ&hl=en"><mark
+						class="highlight-gray">Hicham Badri</mark></a><mark class="highlight-gray">, </mark></p>
+						<p><a
+					href="https://scholar.google.com/citations?user=HxZDDzUAAAAJ&hl=en"><mark
+						class="highlight-gray">Appu Shaji</mark></a><mark class="highlight-gray"></mark></p>
+			<p><mark class="highlight-gray"><a href="https://www.mobiuslabs.com/"><mark class="highlight-gray">Mobius
+							Labs GmbH</mark></a></p>
+			<hr />
+			<h2 id="intro" class="">Introduction</h2>
+			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's Whisper model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
+
+			<p>Our main contribution is ....</p>
+				<!--This refined version improves throughput by parallel processing audio segments identified as relevant through voice detection. We batch these segments together to boost overall processing speed. -->
+
+				
+			<hr id="header_seperator" />
+			<div class="column-list">
+				<div style="width:32%" class="column">
+					<!-- <p class="page-description"><img src="./baby_aana.png" /></p> -->
+					<figure class="image" style="text-align:left"><a href="figs/aana_batch_whisper.png"><img style="width:240px"
+								src="figs/aana_batch_whisper.png" /></a>
+					</figure>
+					<p>
+						<strong>Table of Contents</strong>
+					</p>
+					<nav class="block-color-gray table_of_contents">
+						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
+								href="#intro">Introduction</a></div>
+						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
+								href="#workhorse">Why Whisper remains a good commercial ASR workhorse system</a>	
+						</div>						
+						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
+							href="#prior">Prior work on speeding up Whisper</a>	
+					</div>						
+						<div class="table_of_contents-item table_of_contents-indent-0"><a
+							class="table_of_contents-link" href="#batch_processing">Batch Processing for Speed Improvements</a>
+						</div>
+						<div class="table_of_contents-item table_of_contents-indent-0"><a
+								class="table_of_contents-link" href="#experiments">Experiments and Benchmarks</a>
+						</div>
+						<div class="table_of_contents-item table_of_contents-indent-0"><a
+								class="table_of_contents-link" href="#conclusion">Conclusion</a>
+						</div>
+
+						<hr />
+
+						<p><strong> Test it out at </strong></p>
+						<ul style="list-style-type:none;"> 
+						 <p><a target="_blank" href="https://github.com/mobiusml/faster-whisper">
+							<img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo-with-title.svg" alt="Batched Faster Whisper" width="120"></a></p>
+						<p><a target="_blank" href="https://colab.research.google.com/drive/1ywpZVj1NwZ2Tre0KOb_a2J_2S1hbzx0P?usp=sharing">
+							<img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+							</a></p>							
+						
+
+						<hr />
+						
+
+						<p><strong> Talk to us at </strong></p>
+						<a href="https://discord.gg/zyZmwqQW"><img
+							src="https://icons.iconarchive.com/icons/bootstrap/bootstrap/48/Bootstrap-discord-icon.png"
+							width="24"></a>
+						<a href="https://twitter.com/Mobius_Labs"><img
+							src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/450px-X_logo_2023.svg.png"
+							width="24"></a>
+					
+						<hr />
+							
+						
+					</nav>
+
+				</div>
+				<div style="width:75%" class="column">
+			
+					
+					<h2 id="workhorse" class="">Title </h2>
+					foo
+					
+					<h2 id="prior" class="">Prior work </h2>
+					foo
+								
+					<h2 id="Static Cache"">Batch Processing for Speed</h2>
+					<p>foo</p>
+
+					
+					<h2 id="citations">Citation</h2>
+					<div>								
+					<pre><code style="background-color: #fff; color: #777;" >
+	@misc{sebastian2024whisper1,
+	title = {Speeding up Whisper},
+	url = {https://mobiusml.github.io/batched_whisper_blog/},
+	author = {Jilt Sebastian and Appu Shaji},
+	month = {May},
+	year = {2024}
+	}
+					</code></pre>
+							</div>
+
+
+							<div>
+								<p style="text-align: center;">Please feel free to <a
+										href="mailto:jilt@mobiuslabs.com">contact us.</a>.</p>
+								<!--                             <p style="text-align: center; color:hotpink;">Check out our other blog post</p> -->
+
+							</div>
+
+				</div>
+
+
+
+
+			</div>
+			<p id="d9be7859-86c8-4e9e-8957-b0127ad9431d" class="">
+			<div class="indented">
+				<p id="7b0d7f13-0909-4e80-97fe-e0102053cc62" class="">
+				</p>
+			</div>
+			</p>
+		</div>
+	</article>
+</body>
+
+</html>
