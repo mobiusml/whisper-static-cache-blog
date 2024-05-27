@@ -80,7 +80,7 @@
 			<h2 id="intro" class="">Introduction</h2>
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's Whisper model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
-			<p>In this blog post, we explain the techniques we used to enhance the performance of the Huggingface Whisper model. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed HQQ to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a 4.5x speedup for non-quantized models and an impressive 6x speedup for quantized models.</p>
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed HQQ to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a 4.5x speedup for non-quantized models and an impressive 6x speedup for quantized models.</p>
 
 			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
 
@@ -101,17 +101,14 @@
 						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
 								href="#intro">Introduction</a></div>
 						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
-								href="#workhorse">Why Whisper remains a good commercial ASR workhorse system</a>	
+								href="#speed-optimization">Speed Optimization</a>	
 						</div>						
 						<div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link"
-							href="#prior">Prior work on speeding up Whisper</a>	
+							href="#quantization">Quantization</a>	
 					</div>						
 						<div class="table_of_contents-item table_of_contents-indent-0"><a
-							class="table_of_contents-link" href="#batch_processing">Batch Processing for Speed Improvements</a>
-						</div>
-						<div class="table_of_contents-item table_of_contents-indent-0"><a
-								class="table_of_contents-link" href="#experiments">Experiments and Benchmarks</a>
-						</div>
+							class="table_of_contents-link" href="#benchmarks">Benchmarks</a>
+						</div>						
 						<div class="table_of_contents-item table_of_contents-indent-0"><a
 								class="table_of_contents-link" href="#conclusion">Conclusion</a>
 						</div>
@@ -147,17 +144,16 @@
 				<div style="width:75%" class="column">
 			
 					
-					<h2 id="workhorse" class="">Speed Optimization </h2>
+					<h2 id="speed-optimization" class="">Speed Optimization </h2>
 					<p><a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a> compiles PyTorch models into optimized kernels and can often result in significant speedups for various PyTorch-based models. One of the prerequisites and critical steps toward achieving this is managing a static kv-cache, as detailed in <a href="https://pytorch.org/blog/accelerating-generative-ai-2/">https://pytorch.org/blog/accelerating-generative-ai-2/</a>. During inference, the kv-cache stores activations. However, due to varying prompts and generation lengths, these caches can have dynamic lengths, which creates overhead. Instead, torch.compile methods require caches to be maintained statically by allocating the maximum size of the kv-cache and masking out unused values. The first step we took was to implement a static cache for the Whisper model to make it possible to use JIT compile backends. A gist of the implementation is available <a href="https://gist.github.com/huseinzol05/9aff34ec1427ee8c92240cb4f3cc0c88">here</a>.</p>
 
 					
-					<h2 id="prior" class="">Quantization</h2>
+					<h2 id="quantization" class="">Quantization</h2>
 					<p>We further quantized models to 4 bits using <a href="https://github.com/mobiusml/hqq">Half-Quadratic Quantization (HQQ)</a>. HQQ is a fast and accurate model quantizer that does not need any calibration data. Additionally, it supports torch.compile backends. Though quantization techniques can reduce VRAM requirements, they often suffer from slower speed due to additional dequantization steps. However, recent developments have introduced new kernels that can perform quantized operations directly on the GPU by bit packing (<a href="https://pytorch.org/cppdocs/api/function_namespaceat_1adeda9630914278ac02d7fd758da19e3d.html">source</a>), and HQQ can leverage these kernels (<a href="https://github.com/mobiusml/hqq/blob/aad68687e042ed628b5a655969406d501a203949/hqq/backends/torchao.py#L295">source</a>). Note that these kernels are optimized for 4-bit GPUs with Ampere architecture (A100, A6000, RTX 3090, RTX 4090).</p>
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements can be reduced by a factor of 3 to 4.</p>
 								
-					<h2 id="Static Cache"">Benchmarks</h2>
-					<p>foo</p>
+					<h2 id="benchmarks"">Benchmarks</h2>					
 
 					<table>
 						<caption>Speed up: The metric indicates how many times faster than real-time speed (standard deviation is in brackets).</caption>
