@@ -50,9 +50,9 @@
 
 	<!-- Twitter Card data -->
 	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:title" content="Speeding up Whisper (ASR)"">
+	<meta name="twitter:title" content="Speeding up Whisper (ASR)">
 	<meta name="twitter:description"
-		content="A support blog for the release of 1-bit Aana model.">
+		content="A support blog for the release of fast and small whisper model.">
 	<meta name="twitter:image" content=https://mobiusml.github.io/batched_whisper_blog/figs/aana_batch_whisper.png">
 	<meta name="twitter:creator" content="@appughar">
 
@@ -81,9 +81,9 @@
 							Labs GmbH</mark></a> and <a href="https://mesolitica.com/">Mesolitica</a></p>
 			<hr />
 			<h2 id="intro" class="">Introduction</h2>
-			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's Whisper model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
+			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's <a href="https://github.com/openai/whisper">Whisper</a> model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
-			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed HQQ to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a 4.5x speedup for non-quantized models and an impressive 6x speedup for quantized models.</p>
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.</p>
 
 			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
 
@@ -156,23 +156,23 @@
 					<h2 id="quantization" class="">Quantization</h2>
 					<p>We further quantized models to 4 bits using <a href="https://github.com/mobiusml/hqq">Half-Quadratic Quantization (HQQ)</a>. HQQ is a fast and accurate model quantizer that does not need any calibration data. Additionally, it fully supports torch.compile. Though quantization techniques can reduce VRAM requirements, they require optimized fused kernels to run faster. Recent developments have introduced low-bit matmul kernels that offer significant speed-ups such as TorchAO's <a href="https://pytorch.org/cppdocs/api/function_namespaceat_1adeda9630914278ac02d7fd758da19e3d.html">tiny_gemm</a>, and HQQ <a href="https://github.com/mobiusml/hqq/blob/aad68687e042ed628b5a655969406d501a203949/examples/backends/torchao_int4_demo.py">can leverage these kernels</a>). </p>
 
-					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements can be reduced by a factor of 3 to 4.</p>
+					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements for the decoder can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder layer of Whisper for the following reason: The encoder layer involves a lot of matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV). The TorchAO kernels are optimized to speed up GEMV operations. Therefore, quantizing the encoder layer would not leverage a speed-up and would result in inferior performance.</p>
+					<p>We only quantize the decoder layer of Whisper for the following reason: The encoder layer involves a lot of matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV). The TorchAO kernels are optimized to speed up GEMV operations. Therefore, quantizing the encoder layer would not leverage a speed-up.</p>  <!-- and would result in inferior performance.-->
 
 					<p>Even if the encoder layer’s performance is optimized, its impact on the overall run time is marginal compared to the decoder layer. The encoder layer includes only one forward pass, whereas the decoder layers must be run many times, once per token generated.</p>
 								
-					<h2 id="benchmarks"">Benchmarks</h2>
-					<p>We conducted two sets of benchmarking experiments to validate the speed-up using torch.compile and HQQ. The <a href="https://huggingface.co/datasets/open-asr-leaderboard/datasets">Open ASR eval dataset</a> is used in the first experiment to measure the speed improvement and effect on the WER, and a set of audio extracts from YouTube videos is used in the second benchmarking. We find that in real-life use cases, transcripts are generally long, hence the second dataset is included. We used the 'large-v2' model with a batch size of 1 and greedy decoding (no sampling) for the experiments.</p>
+					<h2 id="benchmarks">Benchmarks</h2>
+					<p>We conducted two sets of benchmarking experiments to validate the speed-up using torch.compile and HQQ. The <a href="https://huggingface.co/datasets/open-asr-leaderboard/datasets">Open ASR eval dataset</a> is used in the first experiment to measure the speed improvement and effect on the WER, and a test set of audio extracts from YouTube videos is used in the second benchmarking. We find that in real-life use cases, transcripts are generally long, hence the second dataset is included. We used the 'large-v2' model with a batch size of 1 and greedy decoding (no sampling) for the experiments.</p>
 						
-					<p>The <a href="https://openvoice-tech.net/index.php/Real-time-factor">Real Time Factor (RTF)</a> metric, commonly used in open-source benchmarks like <a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard">Open ASR Leaderboard</a> evaluation, measures the speed of offline ASR systems by comparing total processing time to audio duration. We use 1/RTF in our benchmarking experiments as it is more interpretable once the speed becomes faster than the real-time speed, which is a common offline ASR requirement. 
+					<p>The <a href="https://openvoice-tech.net/index.php/Real-time-factor">Real Time Factor (RTF)</a> metric, commonly used in open-source benchmarks like <a href="https://huggingface.co/spaces/hf-audio/open_asr_leaderboard">Open ASR Leaderboard</a> evaluation, measures the speed of offline ASR systems by comparing total processing time to audio duration. We use 1/RTF in our benchmarking experiments as it is more interpretable once the speed becomes faster than the real-time speed, which is a common offline ASR requirement. We used 'EnglishTextNormalizer()' from <a href="https://github.com/huggingface/open_asr_leaderboard">Open ASR Eval</a> as the text normalizer to compute WER. Experiments use torch nightly build as of 28 May 2024. The experiments are run on a RTX 4090 GPU.
 					</p>
 
 
 					<h3>Short-form Audio</h3>
-					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets are used with audios less than 30 seconds for the experiments.</p>
+					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets with audios less than 30 seconds are used for the experiments.</p>
 						<table>
-						<caption>The speed metric indicates how many times faster than real-time speed. The experiments are run on a RTX 4090 GPU.</caption>
+						<caption> Speed up and WER (short form audio). The speed metric indicates how many times faster than the real-time speed. </caption>
 						<tr>
 							<th>Dataset</th>
 							<th>Avg. Duration</th>						
@@ -232,8 +232,9 @@
 							<td>16.69%</td>
 						</tr>
 					</table>
+
 				<h3>Real-word Scenario: Long Audios</h3>
-				<p> In order to check the effect of these decoding methods in real-world scenarios with long audios, we used an internal test dataset with 84 minutes duration and verified ground truth. The test set contains 9 audios ranging from 3 minutes to 13 minutes and various audio types.</p>
+				<p> In order to check the effect of these decoding methods in real-world scenarios with long audios, we used an internal test dataset with 84 minutes duration and verified ground truth. The test set contains 9 audios ranging from 3 minutes to 13 minutes and covers various audio types.</p>
 				<table>
 					<caption>Speed up and WER (long form audio)</caption>
 		
@@ -263,15 +264,15 @@
 				</tr> -->
 				<tr>
 					<td> VRAM usage </td>
-					<td>8630 MiB</td>
-					<td>8630 MiB</td>
-					<td>3600 MiB</td>
+					<td>3576 MiB</td>
+					<td>3576 MiB</td>
+					<td>2454 MiB</td>
 				</tr>
 			</table>
 
 			<p>The speed-up in the actual processing time depends on the audio length. For datasets with larger audio lengths, the speed-up is higher as there are more tokens to decode at a higher pace, and the impact of optimization and quantization is more profound.</p> 
 			
-			<p>For example in AMI corpus which is a corpus with short videos with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and 3.6x for pytorch compiled one.</p>
+			<p>For example in AMI corpus, which is a corpus with short videos with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and 3.6x for pytorch compiled one.</p>
 
 			<h4>Tokens per Second</h4>
 
@@ -288,29 +289,26 @@
 
 			</div>
 
-			<p>The significant speed-up and impact of optimization and quantization happens during decoder layers. The following table shows the tokens per second processed by the decoder layer for the long form audio dataset. </p>
+			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder layers for the long form audio dataset. </p>
 
 			<table>
 				<tr>
 					<td>Baseline</td>
-					<td>49.5</td>
+					<td>49.5 it/sec</td>
 				</tr>
 				<tr>
 					<td>Torch Compile</td>
-					<td>243.4</td>
+					<td>243.4 it/sec</td>
 				</tr>
 				<tr>
 					<td>Torch Compile + HQQ</td>
-					<td>316.4</td>
+					<td>316.4 it/sec</td>
 				</tr>
 			</table>
 
 			
 
 
-
-
-			
 
 
 			<h3>Caveats</h3>
