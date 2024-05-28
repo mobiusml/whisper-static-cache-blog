@@ -274,6 +274,20 @@
 			<p>For example in AMI corpus which is a corpus with short videos with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and 3.6x for pytorch compiled one.</p>
 
 			<h4>Tokens per Second</h4>
+
+			<div class="column-list">
+				<div style="width:49%" class="column">
+					<div class="caption">Baseline</div>
+					<img src="figs/transcription_speed_default_opt.gif" />
+					
+				</div>
+				<div style="width:49%" class="column">
+					<div class="caption">Torch Compile + HQQ</div> 
+					<img src="figs/transcription_compile_hqq_opt.gif" />					
+				</div>
+
+			</div>
+
 			<p>The significant speed-up and impact of optimization and quantization happens during decoder layers. The following table shows the tokens per second processed by the decoder layer for the long form audio dataset. </p>
 
 			<table>
@@ -290,6 +304,13 @@
 					<td>316.4</td>
 				</tr>
 			</table>
+
+			
+
+
+
+
+			
 
 
 			<h3>Caveats</h3>
