@@ -306,10 +306,124 @@
 				</tr>
 			</table>
 
+
+			<h3>Whisper in Extreme Low-Bit Configurations</h3>
+
+			<p>Additionally, we tested Whisper in extreme low-bit configurations (i.e., 3, 2, 1.58 (ternary), and 1 bit). Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) for these configurations:</p>
+
 			
+			<table>
+				<caption> WER for low-bit quantized Whisper Models. </caption>
+				<tr>
+					<th>Dataset</th>
+					<th>#bits</th>
+					<th>WER</th>						
+					<th>Speed</th>					
+				</tr>
+				<tr>
+					<td rowspan="4">TEDLIUM</td>
+					<td>4 bit</td>
+					<td>4.06</td>
+					<td>37.3x</td>
+				</tr>
+				<tr>					
+					<td>3 bit</td>
+					<td>4.72</td>
+					<td>15.9x</td>
+				</tr>
+				<tr>
+					<td>2 bit</td>
+					<td>4.61</td>
+					<td>26.2x</td>
+				</tr>
+				<tr>
+					<td>1.58 bit</td>
+					<td>5.30</td>
+					<td>26.3x</td>
+				</tr>
+				<tr>
+					<td rowspan="4">Voxpopuli</td>
+					<td>4 bit</td>
+					<td>7.84</td>
+					<td>47.9x</td>
+				</tr>
+				<tr>					
+					<td>3 bit</td>
+					<td>7.82</td>
+					<td>21.8x</td>
+				</tr>
+				<tr>
+					<td>2 bit</td>
+					<td>8.05</td>
+					<td>29.6x</td>
+				</tr>
+				<tr>
+					<td>1.58 bit</td>
+					<td>9.64</td>
+					<td>27.8x</td>
+				</tr>
+				<tr>
+					<td rowspan="4">Earnings22</td>
+					<td>4 bit</td>
+					<td>12.15</td>
+					<td>42.9x</td>
+				</tr>
+				<tr>					
+					<td>3 bit</td>
+					<td>12.26</td>
+					<td>17.5x</td>
+				</tr>
+				<tr>
+					<td>2 bit</td>
+					<td>13.6</td>
+					<td>25.9x</td>
+				</tr>
+				<tr>
+					<td>1.58 bit</td>
+					<td>12.40</td>
+					<td>20.5x</td>
+				</tr>
+				<tr>
+					<td rowspan="4">AMI</td>
+					<td>4 bit</td>
+					<td>16.71</td>
+					<td>20.4x</td>
+				</tr>
+				<tr>					
+					<td>3 bit</td>
+					<td>16.70</td>
+					<td>8.7x</td>
+				</tr>
+				<tr>
+					<td>2 bit</td>
+					<td>17.30</td>
+					<td>13.4x</td>
+				</tr>
+				<tr>
+					<td>1.58 bit</td>
+					<td>19.10</td>
+					<td>13.3x</td>
+				</tr>
+				<tr>
+					<td rowspan="3">Long-form Audio</td>
+					<td>3 bit</td>
+					<td>11.56</td>
+					<td>34.6x</td>
+				</tr>
+				<tr>
+					<td>2 bit</td>
+					<td>11.58</td>
+					<td>45.3x</td>
+				</tr>
+				<tr>
+					<td>1.58 bit</td>
+					<td>12.48</td>
+					<td>42.9x</td>
+				</tr>
+			</table>
 
-
-
+			<p>To our surprise, Whisper's performance only degrades gracefully and remains quite useful even in extreme low-bit configurations. 1.58 bits and 1 bit are quite promising since they are conducive to hardware implementation, which can result in a 70x speedup.</p>
+			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our 1-bit blog, to gracefully recover from low-bit performance degradation</p>
 
 			<h3>Caveats</h3>
 
