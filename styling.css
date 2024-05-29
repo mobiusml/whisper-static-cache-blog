@@ -296,6 +296,22 @@
             background-color: rgba(144, 101, 176, 0.2);            
         }
 
+        tr.group1{
+            background-color: rgba(144, 101, 176, 0.2);            
+        }
+
+        tr.group2{
+            background-color: rgba(101, 176, 102, 0.2);            
+        }
+
+        td.group1{
+            background-color: rgba(144, 101, 176, 0.2);            
+        }
+
+        td.group2{
+            background-color: rgba(101, 176, 102, 0.2);            
+        }
+
 
         th {
             font-family: "Poppins", "Helvetica Neue", Helvetica, Arial, sans-serif;

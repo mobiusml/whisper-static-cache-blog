@@ -21,7 +21,7 @@
 
 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/latest.min.js"></script> -->
 
-	<title>Speeding up Whisper</title>
+	<title>Faster and Smaller Whisper: A Deep Dive into Quantization and Torch Compilation</title>
 	<link rel="stylesheet" type="text/css" href="styling.css">
 	<link rel="icon" type="image/png" href="figs/aana_logo.png">	
 	<link rel="stylesheet" href="https://use.typekit.net/pnf5khj.css">
@@ -64,7 +64,7 @@
 <body>
 	<article id="speeding up whisper" class="page sans">
 		<header>
-			<h1 class="page-title">Fast and Small Whisper via HQQ Quantization and Torch Compile</h1>
+			<h1 class="page-title">Faster and Smaller Whisper: A Deep Dive into Quantization and Torch Compilation</h1>
 
 		</header>
 		<div class="page-body">
@@ -317,106 +317,169 @@
 				<tr>
 					<th>Dataset</th>
 					<th>#bits</th>
+					<th>Group Size</th>
 					<th>WER</th>						
 					<th>Speed</th>					
 				</tr>
 				<tr>
 					<td rowspan="4">TEDLIUM</td>
-					<td>4 bit</td>
-					<td>4.06</td>
-					<td>37.3x</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">4.06</td>
+					<td class="group2">37.3x</td>
 				</tr>
-				<tr>					
+				<tr class="group1">					
 					<td>3 bit</td>
+					<td>16</td>
 					<td>4.72</td>
 					<td>15.9x</td>
 				</tr>
-				<tr>
+				<tr class="group2">
 					<td>2 bit</td>
+					<td>16</td>
 					<td>4.61</td>
 					<td>26.2x</td>
 				</tr>
-				<tr>
+				<tr class="group1">
 					<td>1.58 bit</td>
+					<td>16</td>
 					<td>5.30</td>
 					<td>26.3x</td>
 				</tr>
 				<tr>
 					<td rowspan="4">Voxpopuli</td>
-					<td>4 bit</td>
-					<td>7.84</td>
-					<td>47.9x</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">7.84</td>
+					<td class="group2">47.9x</td>
 				</tr>
-				<tr>					
+				<tr class="group1">					
 					<td>3 bit</td>
+					<td>16</td>
 					<td>7.82</td>
 					<td>21.8x</td>
 				</tr>
-				<tr>
+				<tr class="group2">
 					<td>2 bit</td>
+					<td>16</td>
 					<td>8.05</td>
 					<td>29.6x</td>
 				</tr>
-				<tr>
+				<tr class="group1">
 					<td>1.58 bit</td>
+					<td>16</td>
 					<td>9.64</td>
 					<td>27.8x</td>
 				</tr>
 				<tr>
 					<td rowspan="4">Earnings22</td>
-					<td>4 bit</td>
-					<td>12.15</td>
-					<td>42.9x</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">12.15</td>
+					<td class="group2">42.9x</td>
 				</tr>
-				<tr>					
+				<tr class="group1">					
 					<td>3 bit</td>
+					<td>16</td>
 					<td>12.26</td>
 					<td>17.5x</td>
 				</tr>
-				<tr>
+				<tr class="group2">
 					<td>2 bit</td>
+					<td>16</td>
 					<td>13.6</td>
 					<td>25.9x</td>
 				</tr>
-				<tr>
+				<tr class="group1">
 					<td>1.58 bit</td>
+					<td>16</td>
 					<td>12.40</td>
 					<td>20.5x</td>
 				</tr>
 				<tr>
 					<td rowspan="4">AMI</td>
-					<td>4 bit</td>
-					<td>16.71</td>
-					<td>20.4x</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">16.71</td>
+					<td class="group2">20.4x</td>
 				</tr>
-				<tr>					
+				<tr class="group1">					
 					<td>3 bit</td>
+					<td>16</td>
 					<td>16.70</td>
 					<td>8.7x</td>
 				</tr>
-				<tr>
+				<tr class="group2">
 					<td>2 bit</td>
+					<td>16</td>
 					<td>17.30</td>
 					<td>13.4x</td>
 				</tr>
-				<tr>
+				<tr class="group1">
 					<td>1.58 bit</td>
+					<td>16</td>
 					<td>19.10</td>
 					<td>13.3x</td>
 				</tr>
-				<tr>
-					<td rowspan="3">Long-form Audio</td>
-					<td>3 bit</td>
+				<tr">
+					<td rowspan="12">Long-form Audio</td>
+					<td class="group2" >4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">11.49</td>
+					<td class="group2">72.8x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>					
+					<td>64</td>
 					<td>11.56</td>
 					<td>34.6x</td>
 				</tr>
-				<tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>11.40</td>
+					<td>33.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>11.56</td>
+					<td>34.6x</td>
+				</tr>
+				<tr class="group2">
 					<td>2 bit</td>
+					<td>64</td>
+					<td>12.74</td>
+					<td>46.0x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>11.75</td>
+					<td>44.7x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
 					<td>11.58</td>
 					<td>45.3x</td>
 				</tr>
-				<tr>
+				
+				<tr class="group1">
 					<td>1.58 bit</td>
+					<td>64</td>
+					<td>96.66</td>
+					<td>- <small>(higly erroneous)</small></td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>41.8</td>
+					<td>38.7x <small>(high hallucinations)</small></td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
 					<td>12.48</td>
 					<td>42.9x</td>
 				</tr>
