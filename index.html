@@ -176,9 +176,11 @@
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements for the decoder can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder layers of Whisper for the following reason: The encoder layer involves mianly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernels are optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
+					<p>We only quantize the decoder layers of Whisper for the following reason: The encoder layer involves mainly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernels are optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
 
-					<p>Even if the encoder layer’s performance is optimized, its impact on the overall run time is marginal compared to the decoder layer. The encoder layer includes only one forward pass, whereas the decoder layers must be run many times, once per token generated.</p>
+					<p>Even if the encoder performance is optimized, its impact on the overall runtime is marginal compared to the decoder. The encoder is only run once, whereas the decoder must be run many times, once per token generated.</p>
+
+					
 								
 					<h2 id="benchmarks">Benchmarks</h2>
 					<p>We conducted two sets of benchmarking experiments to validate the speed-up using torch.compile and HQQ. The <a href="https://huggingface.co/datasets/open-asr-leaderboard/datasets">Open ASR eval dataset</a> is used in the first experiment to measure the speed improvement and effect on the WER, and a test set of audio extracts from YouTube videos is used in the second benchmarking. We find that in real-life use cases, transcripts are generally long, hence the second dataset is included. We used the 'large-v2' model with a batch size of 1 and greedy decoding (no sampling) for the experiments.</p>
