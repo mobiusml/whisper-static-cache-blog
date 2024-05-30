@@ -83,7 +83,7 @@
 			<h2 id="intro" class="">Introduction</h2>
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's <a href="https://github.com/openai/whisper">Whisper</a> model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
-			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a static cache, and utilizing torch.compile, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.</p>
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.</p>
 
 			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
 
@@ -170,7 +170,7 @@
 
 
 					<h3>Short-form Audio</h3>
-					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets with audios less than 30 seconds are used for the experiments.</p>
+					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets with audios less than 30 seconds are used for the experiments. Baseline system is the current implementation in <a href="https://github.com/huggingface/transformers" ></a>transformers, that does not use torch.compile operation. </p>
 						<table>
 						<caption> Speed up and WER (short form audio). The speed metric indicates how many times faster than the real-time speed. </caption>
 						<tr>
@@ -236,7 +236,7 @@
 				<h3>Real-word Scenario: Long Audios</h3>
 				<p> In order to check the effect of these decoding methods in real-world scenarios with long audios, we used an internal test dataset with 84 minutes duration and verified ground truth. The test set contains 9 audios ranging from 3 minutes to 13 minutes and covers various audio types.</p>
 				<table>
-					<caption>Speed up and WER (long form audio)</caption>
+					<caption>Speed up and WER (long form audio). We also compare the VRAM usage of the models.</caption>
 		
 				<tr>
 					<th>System</th>					
@@ -272,7 +272,7 @@
 
 			<p>The speed-up in the actual processing time depends on the audio length. For datasets with larger audio lengths, the speed-up is higher as there are more tokens to decode at a higher pace, and the impact of optimization and quantization is more profound.</p> 
 			
-			<p>For example in AMI corpus, which is a corpus with short videos with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and 3.6x for pytorch compiled one.</p>
+			<p>For example in AMI corpus, which is a corpus with very short audio clips with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and <b>3.6x</b> for pytorch compiled one. This speed up can be achieved on top of the fastest sequential /batched execution pytorch based models, resulting in ultra-fast ASR inference. </p>
 
 			<h4>Tokens per Second</h4>
 
@@ -289,7 +289,7 @@
 
 			</div>
 
-			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder layers for the long form audio dataset. </p>
+			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder layers for the long form audio dataset, which covers a real-world scenario.</p>
 
 			<table>
 				<tr>
@@ -309,7 +309,7 @@
 
 			<h3>Whisper in Extreme Low-Bit Configurations</h3>
 
-			<p>Additionally, we tested Whisper in extreme low-bit configurations (i.e., 3, 2, 1.58 (ternary), and 1 bit). Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) for these configurations:</p>
+			<p>Additionally, we tested Whisper in extreme low-bit configurations (i.e., 3, 2 and 1.58 (ternary) bits) with different quantisation group sizes. Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) for these configurations:</p>
 
 			
 			<table>
@@ -322,7 +322,7 @@
 					<th>Speed</th>					
 				</tr>
 				<tr>
-					<td rowspan="4">TEDLIUM</td>
+					<td rowspan="9">TEDLIUM</td>
 					<td class="group2">4 bit</td>
 					<td class="group2">64</td>
 					<td class="group2">4.06</td>
@@ -331,6 +331,18 @@
 				<tr class="group1">					
 					<td>3 bit</td>
 					<td>16</td>
+					<td>4.94</td>
+					<td>17.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>4.14</td>
+					<td>18.0x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
 					<td>4.72</td>
 					<td>15.9x</td>
 				</tr>
@@ -340,14 +352,32 @@
 					<td>4.61</td>
 					<td>26.2x</td>
 				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>4.77</td>
+					<td>23.2x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>7.26</td>
+					<td>24.4x</td>
+				</tr>
 				<tr class="group1">
 					<td>1.58 bit</td>
 					<td>16</td>
 					<td>5.30</td>
 					<td>26.3x</td>
 				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>23.94</td>
+					<td>25.7x</td>
+				</tr>
 				<tr>
-					<td rowspan="4">Voxpopuli</td>
+					<td rowspan="9">Voxpopuli</td>
 					<td class="group2">4 bit</td>
 					<td class="group2">64</td>
 					<td class="group2">7.84</td>
@@ -356,6 +386,18 @@
 				<tr class="group1">					
 					<td>3 bit</td>
 					<td>16</td>
+					<td>9.03</td>
+					<td>20.7x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>8.40</td>
+					<td>21.3x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
 					<td>7.82</td>
 					<td>21.8x</td>
 				</tr>
@@ -365,14 +407,32 @@
 					<td>8.05</td>
 					<td>29.6x</td>
 				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>8.74</td>
+					<td>30.0x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>8.97</td>
+					<td>29.4x</td>
+				</tr>
 				<tr class="group1">
 					<td>1.58 bit</td>
 					<td>16</td>
 					<td>9.64</td>
 					<td>27.8x</td>
 				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>30.42</td>
+					<td>25.3x</td>
+				</tr>
 				<tr>
-					<td rowspan="4">Earnings22</td>
+					<td rowspan="9">Earnings22</td>
 					<td class="group2">4 bit</td>
 					<td class="group2">64</td>
 					<td class="group2">12.15</td>
@@ -381,14 +441,38 @@
 				<tr class="group1">					
 					<td>3 bit</td>
 					<td>16</td>
+					<td>12.3</td>
+					<td>17.7x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>12.41</td>
+					<td>16.3x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
 					<td>12.26</td>
 					<td>17.5x</td>
 				</tr>
 				<tr class="group2">
 					<td>2 bit</td>
 					<td>16</td>
-					<td>13.6</td>
+					<td>13.60</td>
 					<td>25.9x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>13.54</td>
+					<td>25.9x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>16.03</td>
+					<td>23.0x</td>
 				</tr>
 				<tr class="group1">
 					<td>1.58 bit</td>
@@ -396,8 +480,14 @@
 					<td>12.40</td>
 					<td>20.5x</td>
 				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>38.50</td>
+					<td>23x</td>
+				</tr>
 				<tr>
-					<td rowspan="4">AMI</td>
+					<td rowspan="9">AMI</td>
 					<td class="group2">4 bit</td>
 					<td class="group2">64</td>
 					<td class="group2">16.71</td>
@@ -406,7 +496,19 @@
 				<tr class="group1">					
 					<td>3 bit</td>
 					<td>16</td>
-					<td>16.70</td>
+					<td>16.63</td>
+					<td>9.0x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>16.64</td>
+					<td>8.6x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
+					<td>16.72</td>
 					<td>8.7x</td>
 				</tr>
 				<tr class="group2">
@@ -415,11 +517,29 @@
 					<td>17.30</td>
 					<td>13.4x</td>
 				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>17.80</td>
+					<td>13.7x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>19.52</td>
+					<td>12.9x</td>
+				</tr>
 				<tr class="group1">
 					<td>1.58 bit</td>
 					<td>16</td>
-					<td>19.10</td>
+					<td>19.15</td>
 					<td>13.3x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>31.22</td>
+					<td>12.7x</td>
 				</tr>
 				<tr">
 					<td rowspan="12">Long-form Audio</td>
@@ -485,8 +605,8 @@
 				</tr>
 			</table>
 
-			<p>To our surprise, Whisper's performance only degrades gracefully and remains quite useful even in extreme low-bit configurations. 1.58 bits and 1 bit are quite promising since they are conducive to hardware implementation, which can result in a 70x speedup.</p>
-			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our 1-bit blog, to gracefully recover from low-bit performance degradation</p>
+			<p>To our surprise, Whisper's performance only degrades gracefully and remains quite useful even in extreme low-bit configurations. For 2 bit and 1.58, best performance is achieved for a group size of 16. For larger bits, group size=64 performs the best.  Lower bits are quite promising since they are conducive to hardware implementation, which can result in energy efficiency upto 70x.</p>
+			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our 1-bit blog, to gracefully recover from low-bit performance degradation.</p>
 
 			<h3>Caveats</h3>
 
@@ -502,7 +622,7 @@
 					<div>								
 					<pre><code style="background-color: #fff; color: #777;" >
 @misc{sebastian2024whisper1,
-title = {Fast and Small Whisper: The Power of Optimized Kernels and Quantization},
+title = {Faster and Smaller Whisper: A Deep Dive into Quantization and Torch Compilation},
 url = {https://mobiusml.github.io/whisper-static-cache-blog/},
 author = {Jilt Sebastian, Husein Zolkepli, Hicham Badri, and Appu Shaji},
 month = {May},
