@@ -270,13 +270,18 @@
             padding: 0.25em 0.5em;
             line-height: 1.8;
             min-height: 1em;
-            min-width: 7em;
+            min-width: 6em;
             text-align: left;
             color: rgba(21, 21, 21, 0.75);
             border-left-width: 0px;
             border-right-width: 0px;
             /* color: rgba(55, 53, 47, 0.8); */
 
+        }
+
+        th.narrow,
+        td.narrow {
+            min-width: 3em;
         }
 
         td.method{
