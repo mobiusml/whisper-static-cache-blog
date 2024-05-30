@@ -333,7 +333,8 @@
             caption-side: bottom;
             font-size: x-small;
             font-weight: 600;
-            text-align: left;            
+            /* text-align: left;             */
+            text-align: center; 
             margin:5px 7px 5px 7px;
 
         }
