@@ -176,7 +176,7 @@
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements for the decoder can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder layer of Whisper for the following reason: The encoder layer involves a lot of matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV). The TorchAO kernels are optimized to speed up GEMV operations. Therefore, quantizing the encoder layer would not leverage a speed-up.</p>  <!-- and would result in inferior performance.-->
+					<p>We only quantize the decoder layers of Whisper for the following reason: The encoder layer involves mianly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernels are optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
 
 					<p>Even if the encoder layer’s performance is optimized, its impact on the overall run time is marginal compared to the decoder layer. The encoder layer includes only one forward pass, whereas the decoder layers must be run many times, once per token generated.</p>
 								
@@ -316,11 +316,13 @@
 
 			<h2 id="low-bit">Whisper in Extreme Low-Bit Configurations</h2>
 
-			<p>Additionally, we tested Whisper in extremely low-bit configurations (i.e., 3, 2, and 1.58 (ternary) bits) with different quantization group sizes. For lower bit sizes, a smaller group size is required (refer to this <a href="https://mobiusml.github.io/hqq_blog/">blog</a>). The default group size for 4-bit models is 64, so we report results for lower bit sizes at 32 and 16 group sizes.</p>
+			<p>Additionally, we tested Whisper in extremely low-bit configurations (i.e., 3, 2, and 1.58 (ternary) bits) with different quantization group sizes. Quantization parameters (namely scale and zero point) are set and computed for a group of entries in a matrix. A lower group size requires more metadata regarding quantization parameters to be stored. Therefore, finding an optimal balance between a large group size and preserving quality is crucial. However, for lower bit sizes, a smaller group size is required (refer to this <a href="https://mobiusml.github.io/hqq_blog/">blog</a>).</p>
 
-			<p>We also conducted experiments with pure 1-bit quantization. However, even with a low group size, the Word Error Rate (WER) was very high, and the output was not meaningful.</p>
 
-			<p>Ternary weights (1.58 bit) are quite promising since matrix multiplications can be reformulated as additions, potentially resulting in a 70x improvement in efficiency (refer to this <a href="https://arxiv.org/abs/2402.17764">paper</a>).</p>
+			<p>The default group size for 4-bit models is 64, so we report results for lower bit sizes at 32 and 16 group sizes. To our surprise, Whisper's performance only degrades slightly and remains quite useful even in extremely low-bit configurations. For 2-bit and 1.58-bit configurations, a group size of 16 is required to be useful. For larger bit sizes, a group size of 64 exhibits comparable accuracy to the non-quantized model.</p>
+
+			<p>Ternary weights (1.58 bit) are quite promising since matrix multiplications can be reformulated as additions, potentially resulting in a 70x improvement in efficiency (refer to this <a href="https://arxiv.org/abs/2402.17764">paper</a>). We also conducted experiments with pure 1-bit quantization. However, even with a low group size, the Word Error Rate (WER) was very high, and the output was not meaningful.</p>
+
 
 			<p>Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) along with speed and qunatization bitrate and group sizes for these configurations.</p>
 			
@@ -618,7 +620,7 @@
 				</tr>
 			</table>
 
-			<p>To our surprise, Whisper's performance only degrades slightly and remains quite useful even in extremely low-bit configurations. For 2-bit and 1.58-bit configurations, the best performance is achieved with a group size of 16. For larger bit sizes, a group size of 64 performs the best. Lower bits are quite promising since they are conducive to hardware implementation, which can result in up to 70x energy efficiency.</p>
+			<!-- <p>To our surprise, Whisper's performance only degrades slightly and remains quite useful even in extremely low-bit configurations. For 2-bit and 1.58-bit configurations, a group size of 16 is required to be useful. For larger bit sizes, a group size of 64 exhibits comparable accuracy with the non quantized model.</p> -->
 
 			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our <a href="https://mobiusml.github.io/hqq_blog/">1-bit blog</a>, to recover from low-bit performance degradation.</p>
 
