@@ -176,7 +176,7 @@
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements for the decoder can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder linear layers of Whisper for the following reason: the encoder linear layers involve mainly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernel is optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
+					<p>We only quantize the decoder linear layers of Whisper for the following reason: the encoder linear layers involve mainly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernel is optimized to speed up GEMV operations with 4-bit quantized weights.</p>
 
 					<p>Even if the encoder performance is optimized, its impact on the overall runtime is marginal compared to the decoder. The encoder is only run once, whereas the decoder must be run many times, once per token generated.</p>
 
@@ -327,7 +327,7 @@
 			<p>Ternary weights (1.58 bit) are quite promising since matrix multiplications can be reformulated as additions, potentially resulting in a 70x improvement in efficiency (refer to this <a href="https://arxiv.org/abs/2402.17764">paper</a>). We also conducted experiments with pure 1-bit quantization. However, even with a low group size, the Word Error Rate (WER) was very high, and the output was not meaningful.</p>
 
 
-			<p>Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) along with speed and qunatization bitrate and group sizes for these configurations.</p>
+			<p>Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) along with speed and quantization bitrate and group sizes for these configurations.</p>
 			
 			
 			<table>
@@ -631,8 +631,8 @@
 
 			<p>A few caveats to note</p>
 			<ol>
-				<li>The TorchAO kernels required modern GPUs: Amphere, RTX series and above.</li>
-				<li>Benchmarking of ASR systems <a href="https://x.com/reach_vb/status/1789020406709416111?s=46&t=FMqc_pzqAD4bhPuXQjLpKA">is not fully mature yet</a>. Therefore, these results need to be further battle-tested. However, our internal benchmark with long-form videos is representative of a production scenario. especially for English.</li>
+				<li>The TorchAO kernels required modern GPUs.</li>
+				<li>Benchmarking of ASR systems <a href="https://x.com/reach_vb/status/1789020406709416111?s=46&t=FMqc_pzqAD4bhPuXQjLpKA">is not fully mature yet</a>. Therefore, these results need to be further battle-tested. However, our internal benchmark with long-form videos is representative of a production scenario, especially for English.</li>
 			</ol>
 
 
@@ -654,7 +654,7 @@ year = {2024}
 
 							<div>
 								<p style="text-align: center;">Please feel free to <a
-										href="mailto:jilt@mobiuslabs.com">contact us.</a>.</p>
+										href="mailto:jilt@mobiuslabs.com">contact us.</a></p>
 								<!--                             <p style="text-align: center; color:hotpink;">Check out our other blog post</p> -->
 
 							</div>
