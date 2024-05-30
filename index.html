@@ -81,13 +81,29 @@
 							Labs GmbH</mark></a> and <a href="https://mesolitica.com/">Mesolitica</a></p>
 			<hr />
 			<h2 id="intro" class="">Introduction</h2>
-			<h2>Introduction</h2>
 
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's <a href="https://github.com/openai/whisper">Whisper</a> model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
+			<div class="column-list">
+				<div style="width:49%" class="column">
+					<div class="caption">Baseline</div>
+					<img src="figs/transcription_speed_default_opt.gif" />
+					
+				</div>
+				<div style="width:49%" class="column">
+					<div class="caption">Torch Compile + HQQ</div> 
+					<img src="figs/transcription_compile_hqq_opt.gif" />					
+				</div>
+
+			</div>
+		
 			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.  Moreover, we report expert quantization results and found that Whisper can be run in extremely low-bit configurations.</p>
 
+			
+	
+
 			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
+
 
 
 
@@ -278,18 +294,7 @@
 
 			<h4>Tokens per Second</h4>
 
-			<div class="column-list">
-				<div style="width:49%" class="column">
-					<div class="caption">Baseline</div>
-					<img src="figs/transcription_speed_default_opt.gif" />
-					
-				</div>
-				<div style="width:49%" class="column">
-					<div class="caption">Torch Compile + HQQ</div> 
-					<img src="figs/transcription_compile_hqq_opt.gif" />					
-				</div>
-
-			</div>
+		
 
 			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder.</p>
 
@@ -613,8 +618,9 @@
 				</tr>
 			</table>
 
-			<p>To our surprise, Whisper's performance only degrades gracefully and remains quite useful even in extreme low-bit configurations. For 2 bit and 1.58, best performance is achieved for a group size of 16. For larger bits, group size=64 performs the best.  Lower bits are quite promising since they are conducive to hardware implementation, which can result in energy efficiency upto 70x.</p>
-			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in <a href="https://mobiusml.github.io/1bit_blog/">our 1-bit blog</a>, to gracefully recover from low-bit performance degradation.</p>
+			<p>To our surprise, Whisper's performance only degrades slightly and remains quite useful even in extremely low-bit configurations. For 2-bit and 1.58-bit configurations, the best performance is achieved with a group size of 16. For larger bit sizes, a group size of 64 performs the best. Lower bits are quite promising since they are conducive to hardware implementation, which can result in up to 70x energy efficiency.</p>
+
+			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our <a href="https://mobiusml.github.io/hqq_blog/">1-bit blog</a>, to recover from low-bit performance degradation.</p>
 
 			<h3>Caveats</h3>
 
