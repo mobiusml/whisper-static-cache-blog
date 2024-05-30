@@ -81,9 +81,11 @@
 							Labs GmbH</mark></a> and <a href="https://mesolitica.com/">Mesolitica</a></p>
 			<hr />
 			<h2 id="intro" class="">Introduction</h2>
+			<h2>Introduction</h2>
+
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's <a href="https://github.com/openai/whisper">Whisper</a> model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
 
-			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.</p>
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.  Moreover, we report expert quantization results and found that Whisper can be run in extremely low-bit configurations.</p>
 
 			<p>Furthermore, we provide benchmarks across various Automatic Speech Recognition (ASR) datasets to demonstrate the effectiveness of our optimizations. This post will delve into the methods and processes behind these improvements, providing insights into the power of optimized kernels and quantization.</p>
 
@@ -113,7 +115,7 @@
 							class="table_of_contents-link" href="#benchmarks">Benchmarks</a>
 						</div>						
 						<div class="table_of_contents-item table_of_contents-indent-0"><a
-								class="table_of_contents-link" href="#conclusion">Conclusion</a>
+								class="table_of_contents-link" href="#low-bit">Extreme Quantization</a>
 						</div>
 
 						<hr />
@@ -307,10 +309,16 @@
 			</table>
 
 
-			<h3>Whisper in Extreme Low-Bit Configurations</h3>
+			<h2 id="low-bit">Whisper in Extreme Low-Bit Configurations</h2>
 
-			<p>Additionally, we tested Whisper in extreme low-bit configurations (i.e., 3, 2 and 1.58 (ternary) bits) with different quantisation group sizes. Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) for these configurations:</p>
+			<p>Additionally, we tested Whisper in extremely low-bit configurations (i.e., 3, 2, and 1.58 (ternary) bits) with different quantization group sizes. For lower bit sizes, a smaller group size is required (refer to this <a href="https://mobiusml.github.io/hqq_blog/">blog</a>). The default group size for 4-bit models is 64, so we report results for lower bit sizes at 32 and 16 group sizes.</p>
 
+			<p>We also conducted experiments with pure 1-bit quantization. However, even with a low group size, the Word Error Rate (WER) was very high, and the output was not meaningful.</p>
+
+			<p>Ternary weights (1.58 bit) are quite promising since matrix multiplications can be reformulated as additions, potentially resulting in a 70x improvement in efficiency (refer to this <a href="https://arxiv.org/abs/2402.17764">paper</a>).</p>
+
+			<p>Note that the PyTorch acceleration kernels we use are optimized for 4 bits, so the speed decreases when the bit size is less than 4 bits. Below, we report the Word Error Rate (WER) along with speed and qunatization bitrate and group sizes for these configurations.</p>
+			
 			
 			<table>
 				<caption> WER for low-bit quantized Whisper Models. </caption>
@@ -606,13 +614,14 @@
 			</table>
 
 			<p>To our surprise, Whisper's performance only degrades gracefully and remains quite useful even in extreme low-bit configurations. For 2 bit and 1.58, best performance is achieved for a group size of 16. For larger bits, group size=64 performs the best.  Lower bits are quite promising since they are conducive to hardware implementation, which can result in energy efficiency upto 70x.</p>
-			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in our 1-bit blog, to gracefully recover from low-bit performance degradation.</p>
+			<p>This warrants two future directions we will be pursuing: the development of more optimized kernels for lower bits and the use of post-quantization training, proposed as one of the methods in <a href="https://mobiusml.github.io/1bit_blog/">our 1-bit blog</a>, to gracefully recover from low-bit performance degradation.</p>
 
 			<h3>Caveats</h3>
 
 			<p>A few caveats to note</p>
 			<ol>
 				<li>The TorchAO kernels required modern GPUs: Amphere, RTX series and above.</li>
+				<li>Benchmarking of ASR systems <a href="https://x.com/reach_vb/status/1789020406709416111?s=46&t=FMqc_pzqAD4bhPuXQjLpKA">is not fully mature yet</a>. Therefore, these results need to be battle-tested. However, our internal benchmark with long-form videos is representative of a production scenario, but it covers only English.</li>
 			</ol>
 
 
