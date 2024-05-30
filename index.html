@@ -272,7 +272,7 @@
 
 			<p>The speed-up in the actual processing time depends on the audio length. For datasets with larger audio lengths, the speed-up is higher as there are more tokens to decode at a higher pace, and the impact of optimization and quantization is more profound.</p> 
 			
-			<p>For example in AMI corpus, which is a corpus with very short audio clips with average lenght of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and <b>3.6x</b> for pytorch compiled one. This speed up can be achieved on top of the fastest sequential /batched execution pytorch based models, resulting in ultra-fast ASR inference. </p>
+			<p>For example in AMI corpus, which is a corpus with very short audio clips with average length of 2 seconds, the speed up is around </b>2x</b> compared to baseline versus the long form dataset where the speed up is <b>4.6x</b> for the HQQ based approach and <b>3.6x</b> for pytorch compiled one. This speed up can be achieved on top of the fastest sequential /batched execution pytorch based models, resulting in ultra-fast ASR inference. </p>
 
 			<h4>Tokens per Second</h4>
 
@@ -289,7 +289,7 @@
 
 			</div>
 
-			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder layers for the long form audio dataset, which covers a real-world scenario.</p>
+			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder.</p>
 
 			<table>
 				<tr>
