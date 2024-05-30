@@ -97,7 +97,7 @@
 
 			</div>
 		
-			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, maintaining a very low loss of quality in Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.  Moreover, we report expert quantization results and found that Whisper can be run in extremely low-bit configurations.</p>
+			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, preserving transcription quality with minimal degradation, as evaluated by Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.  Moreover, we report detailed quantization results and found that Whisper can be run in extremely low-bit configurations.</p>
 
 			
 	
@@ -176,7 +176,7 @@
 
 					<p>Our previous experience with quantizing LLMs has shown that there is only a very marginal drop in quality (measured as word error rate) when quantizing to 4 bits, while achieving further speedup compared to vanilla PyTorch compiled models. Moreover, the GPU VRAM requirements for the decoder can be reduced by a factor of 3 to 4.</p>
 
-					<p>We only quantize the decoder layers of Whisper for the following reason: The encoder layer involves mainly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernels are optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
+					<p>We only quantize the decoder linear layers of Whisper for the following reason: the encoder linear layers involve mainly matrix-matrix computations (GEMM), whereas the decoder layers primarily involve matrix-vector multiplications (GEMV) during the decoding phase. The TorchAO kernel is optimized to speed-up GEMV operations with 4-bit quantized weights.</p>
 
 					<p>Even if the encoder performance is optimized, its impact on the overall runtime is marginal compared to the decoder. The encoder is only run once, whereas the decoder must be run many times, once per token generated.</p>
 
@@ -189,7 +189,7 @@
 					</p>
 
 
-					<h3>Short-form Audio</h3>
+					<h3>Short-Form Audio</h3>
 					<p>The first dataset represents short-form audio as the average duration of each sample in the dataset is less than 10 seconds. Four Open ASR eval datasets with audios less than 30 seconds are used for the experiments. Baseline system is the current implementation in <a href="https://github.com/huggingface/transformers" ></a>transformers, that does not use torch.compile operation. </p>
 						<table>
 						<caption> Speed up and WER (short form audio). The speed metric indicates how many times faster than the real-time speed. </caption>
@@ -253,7 +253,7 @@
 						</tr>
 					</table>
 
-				<h3>Real-word Scenario: Long Audios</h3>
+				<h3>Real-Word Scenario: Long Audios</h3>
 				<p> In order to check the effect of these decoding methods in real-world scenarios with long audios, we used an internal test dataset with 84 minutes duration and verified ground truth. The test set contains 9 audios ranging from 3 minutes to 13 minutes and covers various audio types.</p>
 				<table>
 					<caption>Speed up and WER (long form audio). We also compare the VRAM usage of the models.</caption>
@@ -301,7 +301,7 @@
 			<p>The significant speed-up and impact of optimization and quantization happens in the decoder layers. The following table shows the tokens per second processed by the decoder.</p>
 
 			<table>
-				<caption>Decoding speed (tokens/sec)</caption>
+				<caption>Decoding Speed (tokens/sec)</caption>
 				<tr>
 					<td>Baseline</td>
 					<td>49.5 it/sec</td>
@@ -331,7 +331,7 @@
 			
 			
 			<table>
-				<caption> WER for low-bit quantized Whisper Models. </caption>
+				<caption> Whisper Low-Bit Quantization WER. </caption>
 				<tr>
 					<th>Dataset</th>
 					<th>#bits</th>
