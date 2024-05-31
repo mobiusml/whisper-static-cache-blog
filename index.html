@@ -332,25 +332,23 @@
 
 			<p>The interactive graph below summarizes the performance with different datasets into a scatter plot. Hover or click on a bubble to display the details.</p>
 
-			<meta charset="utf-8">
-
 			<!-- Load d3.js -->
 			<script src="https://d3js.org/d3.v4.js"></script>
 			<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-			
+
 			<!-- Create a div where the graph will take place -->
 			<div id="my_dataviz"></div>
-			
+
 			<style>
 				.bubbles {
 					stroke-width: 2px;
 					stroke: white;
 				}
-			
+
 				.bubbles:hover {
 					stroke: black;
 				}
-			
+
 				.tooltip {
 					position: absolute;
 					background-color: white;
@@ -360,68 +358,77 @@
 					color: black;
 					pointer-events: none;
 				}
+
+				.radio-buttons, .checkboxes {
+					margin: 10px;
+					border: solid;
+					background-color: #fff;
+					border-width: 1px;
+					border-radius: 5px;
+					width: auto;
+					display: inline-block;
+					text-align: center;
+				}
+
+				.radio-buttons label, .checkboxes label {
+					font-weight: bold;
+					font-size: 12px;
+					margin-right: 10px;
+				}
 			</style>
-			
+
 			<script>
 				var margin = { top: 10, right: 20, bottom: 30, left: 50 },
 					width = 500 - margin.left - margin.right,
 					height = 420 - margin.top - margin.bottom;
-			
+
 				var svg = d3.select("#my_dataviz")
 					.append("svg")
 					.attr("width", width + margin.left + margin.right)
 					.attr("height", height + margin.top + margin.bottom)
 					.append("g")
 					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-			
+
 				d3.csv("https://gist.githubusercontent.com/Jiltseb/2fe646d71053b4d462f00959b0587f84/raw/7ab4a299579fc1949b4e4260c0bcae2d7f992780/whisper_hqq_low_bit_chart.csv", function (data) {
-			
-					console.log(data); // Log data to check if all datasets are loaded
-					var groupSizeToLegend = {
-						"TEDLIUM": "TEDLIUM",
-						"Voxpopuli": "Voxpopuli",
-						"Earnings22": "Earnings22",
-						"AMI": "AMI",
-						"Long-form Audio": "Long-form Audio"
-					};
-			
-					var uniqueDatasets = [...new Set(data.map(item => "Group size "+item.group_size))];
-					var checkboxesDiv = d3.select("#my_dataviz").append("div")
-						.style("margin", "10px")
-						.style("border", "solid")
-						.style("background-color", "#fff")
-						.style("border-width", "1px")
-						.style("border-radius", "5px")
-						.style("width", "auto")
-						.style("display", "inline-block")
-						.style("text-align", "center");
-			
-					var datasetDiv = checkboxesDiv.append("div").attr("id", "dataset-checkboxes")
-						.style("background-color", "#efe")
-						.style("padding", "2px")
-						.style("border-radius", "2px")
-						.style("margin", "4px")
-						.style("display", "inline-block");
-					datasetDiv.append("label").text("Configuration: ")
-						.style("font-weight", "bold")
-						.style("font-size", "10px");
-					uniqueDatasets.forEach(function (dataset) {
-						var labelText = dataset === 'Group size -' ? 'Baseline System' : dataset;
-						datasetDiv.append("input")
-							.attr("type", "checkbox")
+
+					var datasets = ["TEDLIUM", "Voxpopuli", "Earnings22", "AMI", "Long-form Audio"];
+					var groupSizes = [...new Set(data.map(item => item.group_size))];
+
+					// Create div for radio buttons
+					var radioButtonsDiv = d3.select("#my_dataviz").append("div")
+						.attr("class", "radio-buttons");
+
+					radioButtonsDiv.append("label").text("Select Dataset: ");
+					datasets.forEach(function (dataset) {
+						radioButtonsDiv.append("input")
+							.attr("type", "radio")
+							.attr("name", "datasetGroup")
 							.attr("value", dataset)
+							.property("checked", dataset === "TEDLIUM")
+							.on("change", updatePlot);
+						radioButtonsDiv.append("label").text(dataset);
+					});
+
+					// Create div for checkboxes
+					var checkboxesDiv = d3.select("#my_dataviz").append("div")
+						.attr("class", "checkboxes");
+
+					checkboxesDiv.append("label").text("Configuration: ");
+					groupSizes.forEach(function (groupSize) {
+						var labelText = groupSize === '-' ? 'Baseline System' : "Group size " + groupSize;
+						checkboxesDiv.append("input")
+							.attr("type", "checkbox")
+							.attr("value", groupSize)
 							.attr("checked", true)
 							.on("change", updatePlot);
-						datasetDiv.append("label").text(labelText)
-							.style("margin-right", "10px")
-							.style("font-size", "10px");
+						checkboxesDiv.append("label").text(labelText);
 					});
-			
+
 					var x = d3.scaleLog()
 						.base(10)
 						.domain([1, 16])
 						.range([0, width]);
-			
+
 					svg.append("g")
 						.attr("transform", "translate(0," + height + ")")
 						.call(d3.axisBottom(x)
@@ -434,26 +441,27 @@
 								}
 							})
 						);
-			
+
 					var y = d3.scaleLinear()
 						.domain([0, d3.max(data, function (d) { return +d.WER; })])
 						.range([height, 0]);
+
 					svg.append("g")
 						.call(d3.axisLeft(y));
-			
+
 					var z = d3.scaleLinear()
 						.domain([2, 16])
 						.range([8, 16]);
-			
+
 					var myColor = d3.scaleOrdinal()
-						.domain(["TEDLIUM", "Voxpopuli", "Earnings22", "AMI", "Long-form Audio"])
+						.domain(datasets)
 						.range(["#3d85c6", "#f44336", "#ce7e00", "#777777", "#8fce00"]);
-			
+
 					var tooltip = d3.select("#my_dataviz")
 						.append("div")
 						.attr("class", "tooltip")
 						.style("opacity", 0);
-			
+
 					var showTooltip = function (d) {
 						var content = "<ul>" +
 							"<li><strong>Group size:</strong> " + d.group_size + "</li>" +
@@ -465,15 +473,15 @@
 							.style("left", (d3.event.pageX + 10) + "px")
 							.style("top", (d3.event.pageY + 10) + "px");
 					};
-			
+
 					var moveTooltip = function (d) {
 						tooltip.style("left", (d3.event.pageX + 10) + "px").style("top", (d3.event.pageY + 10) + "px");
 					};
-			
+
 					var hideTooltip = function (d) {
 						tooltip.transition().duration(200).style("opacity", 0);
 					};
-			
+
 					svg.append("text")
 						.attr("class", "x label")
 						.attr("text-anchor", "end")
@@ -482,7 +490,7 @@
 						.style("font", "12px sans-serif")
 						.style("font-weight", "bold")
 						.text("Number of bits");
-			
+
 					svg.append("text")
 						.attr("class", "y label")
 						.attr("text-anchor", "end")
@@ -493,7 +501,7 @@
 						.style("font", "12px sans-serif")
 						.style("font-weight", "bold")
 						.text("WER");
-			
+
 					var bubble = svg.append('g')
 						.selectAll("circle")
 						.data(data)
@@ -504,42 +512,28 @@
 						.attr("cx", function (d) { return x(d.nbits); })
 						.attr("cy", function (d) { return y(d.WER); })
 						.attr("r", function (d) { return z(d.nbits); })
-						.style("fill", function (d) { return myColor(d.Dataset); }) // Correctly map the color to the group_size
+						.style("fill", function (d) { return myColor(d.Dataset); })
 						.on("mouseover", showTooltip)
 						.on("mousemove", moveTooltip)
 						.on("mouseleave", hideTooltip);
-			
-					svg.selectAll("legend_dots")
-						.data(Object.keys(groupSizeToLegend))
-						.enter()
-						.append("circle")
-						.attr("cx", 420)
-						.attr("cy", function (d, i) { return i * 20; })
-						.attr("r", 5)
-						.style("fill", function (d) { return myColor(d); });
-			
-					svg.selectAll("legend_dots_labels")
-						.data(Object.keys(groupSizeToLegend))
-						.enter()
-						.append("text")
-						.attr("x", 420 - 100)
-						.attr("y", function (d, i) { return i * 20 + 3; })
-						.style("fill", function (d) { return myColor(d); })
-						.style("font", "10px sans-serif")
-						.text(function (d) { return groupSizeToLegend[d]; })
-						.attr("text-anchor", "left")
-						.style("alignment-baseline", "middle");
-			
+
 					function updatePlot() {
-						var selectedDatasets = Array.from(document.querySelectorAll('#dataset-checkboxes input:checked')).map(d => d.value);
-			
+						var selectedDataset = document.querySelector('input[name="datasetGroup"]:checked').value;
+						var selectedGroupSizes = Array.from(document.querySelectorAll('.checkboxes input:checked')).map(d => d.value);
+
 						bubble.style('display', function (d) {
-							var datasetMatch = selectedDatasets.includes("Group size "+d.group_size);
-							return datasetMatch ? null : 'none';
+							var datasetMatch = d.Dataset === selectedDataset;
+							var groupMatch = selectedGroupSizes.includes(d.group_size);
+							return datasetMatch && groupMatch ? null : 'none';
 						});
 					}
+
+					updatePlot(); // Initial call to update the plot based on default selections
 				});
-			</script>						
+			</script>
+
+
+
 
 			<!-- <p>To our surprise, Whisper's performance only degrades slightly and remains quite useful even in extremely low-bit configurations. For 2-bit and 1.58-bit configurations, a group size of 16 is required to be useful. For larger bit sizes, a group size of 64 exhibits comparable accuracy with the non quantized model.</p> -->
 
