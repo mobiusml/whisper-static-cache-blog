@@ -141,6 +141,58 @@
         .image-container img {
             display: block;
         }
+
+        .toggle-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .toggle-button {
+            cursor: pointer;            
+            color: rgb(29, 29, 29);
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .toggle-container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;            
+        }
+
+        .toggle-text{
+            font-family: "Merriweather", "source-serif-pro", Georgia, serif;
+            font-size: small;
+        }
+
+        .arrow {
+            border: solid black;
+            border-width: 0 3px 3px 0;
+            display: inline-block;
+            padding: 3px;
+          }
+          
+          .right {
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg);
+          }
+          
+          .left {
+            transform: rotate(135deg);
+            -webkit-transform: rotate(135deg);
+          }
+          
+          .up {
+            transform: rotate(-135deg);
+            -webkit-transform: rotate(-135deg);
+          }
+          
+          .down {
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+          }
             
 
 

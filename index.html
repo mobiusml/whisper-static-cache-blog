@@ -18,6 +18,42 @@
 		  // Optionally provide user feedback, e.g., changing the button text
 		}
 	  </script>
+	  <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var button = document.getElementById("toggle-button");
+            var content = document.getElementById("toggle-content");
+			var toggle_text = document.getElementById("toggle-text");
+			// <div class="toggle-text"><p>Press the + sign  to see  the raw datapoints for the above graph.</p></div>
+
+            button.addEventListener("click", function() {
+                if (content.style.display === "none" || content.style.display === "") {
+                    content.style.display = "block";
+                    button.textContent = "-";
+					toggle_text.textContent = "Press the - sign to hide the raw datapoints for the above graph.";
+                } else {
+                    content.style.display = "none";
+                    button.textContent = "+";
+					toggle_text.innerHTML = "<b>Tabular Data:</b> Press the + sign  to see  the raw datapoints for the above graph."
+                }
+            });
+        });
+    	</script>
+		<!-- <script>
+			function toggleContent() {
+				var content = document.getElementById("content");
+				var button = document.getElementById("toggle-button");
+
+				button.addEventListener("click", function() {
+					if (content.style.display === "none" || content.style.display === "") {
+						content.style.display = "block";
+						button.textContent = "-";
+					} else {
+						content.style.display = "none";
+						button.textContent = "+";
+					}
+				});
+			}
+			</script> -->
 
 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/latest.min.js"></script> -->
 
@@ -535,6 +571,307 @@
 					updatePlot(); // Initial call to update the plot based on default selections
 				});
 			</script>
+
+			<div class="table-data" style="border: 1px solid #d6d6d6; border-radius: 8px; padding-left: 20px;">
+				<div class="toggle-container">
+					<div class="toggle-text" id="toggle-text"><b>Tabular Data:</b> Press the + sign  to see  the raw datapoints for the above graph.</div>
+				<div><button class="toggle-button" id="toggle-button">+</button></div>
+				</div>
+			
+
+			<table class="toggle-content" id="toggle-content">
+				<caption> Whisper Low-Bit Quantization WER. </caption>
+				<tr>
+					<th>Dataset</th>
+					<th>#bits</th>
+					<th>Group Size</th>
+					<th>WER</th>						
+					<th>Speed</th>					
+				</tr>
+				<tr>
+					<td rowspan="9">TEDLIUM</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">4.06</td>
+					<td class="group2">37.3x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>4.94</td>
+					<td>17.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>4.14</td>
+					<td>18.0x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
+					<td>4.72</td>
+					<td>15.9x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
+					<td>4.61</td>
+					<td>26.2x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>4.77</td>
+					<td>23.2x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>7.26</td>
+					<td>24.4x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
+					<td>5.30</td>
+					<td>26.3x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>23.94</td>
+					<td>25.7x</td>
+				</tr>
+				<tr>
+					<td rowspan="9">Voxpopuli</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">7.84</td>
+					<td class="group2">47.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>9.03</td>
+					<td>20.7x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>8.40</td>
+					<td>21.3x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
+					<td>7.82</td>
+					<td>21.8x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
+					<td>8.05</td>
+					<td>29.6x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>8.74</td>
+					<td>30.0x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>8.97</td>
+					<td>29.4x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
+					<td>9.64</td>
+					<td>27.8x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>30.42</td>
+					<td>25.3x</td>
+				</tr>
+				<tr>
+					<td rowspan="9">Earnings22</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">12.15</td>
+					<td class="group2">42.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>12.3</td>
+					<td>17.7x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>12.41</td>
+					<td>16.3x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
+					<td>12.26</td>
+					<td>17.5x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
+					<td>13.60</td>
+					<td>25.9x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>13.54</td>
+					<td>25.9x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>16.03</td>
+					<td>23.0x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
+					<td>12.40</td>
+					<td>20.5x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>38.50</td>
+					<td>23x</td>
+				</tr>
+				<tr>
+					<td rowspan="9">AMI</td>
+					<td class="group2">4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">16.71</td>
+					<td class="group2">20.4x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>16.63</td>
+					<td>9.0x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>16.64</td>
+					<td>8.6x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>64</td>
+					<td>16.72</td>
+					<td>8.7x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
+					<td>17.30</td>
+					<td>13.4x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>17.80</td>
+					<td>13.7x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>19.52</td>
+					<td>12.9x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
+					<td>19.15</td>
+					<td>13.3x</td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>31.22</td>
+					<td>12.7x</td>
+				</tr>
+				<tr">
+					<td rowspan="12">Long-form Audio</td>
+					<td class="group2" >4 bit</td>
+					<td class="group2">64</td>
+					<td class="group2">11.49</td>
+					<td class="group2">72.8x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>					
+					<td>64</td>
+					<td>11.56</td>
+					<td>34.6x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>32</td>
+					<td>11.40</td>
+					<td>33.9x</td>
+				</tr>
+				<tr class="group1">					
+					<td>3 bit</td>
+					<td>16</td>
+					<td>11.56</td>
+					<td>34.6x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>64</td>
+					<td>12.74</td>
+					<td>46.0x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>32</td>
+					<td>11.75</td>
+					<td>44.7x</td>
+				</tr>
+				<tr class="group2">
+					<td>2 bit</td>
+					<td>16</td>
+					<td>11.58</td>
+					<td>45.3x</td>
+				</tr>
+
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>64</td>
+					<td>96.66</td>
+					<td>- <small>(higly erroneous)</small></td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>32</td>
+					<td>41.8</td>
+					<td>38.7x <small>(high hallucinations)</small></td>
+				</tr>
+				<tr class="group1">
+					<td>1.58 bit</td>
+					<td>16</td>
+					<td>12.48</td>
+					<td>42.9x</td>
+				</tr>
+			</table>
+			</div>
 
 
 
