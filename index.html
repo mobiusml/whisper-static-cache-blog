@@ -119,19 +119,6 @@
 			<h2 id="intro" class="">Introduction</h2>
 
 			<p>Recent years have witnessed remarkable advancements in artificial intelligence, propelling rapid growth in automatic speech recognition (ASR) technologies. Soon after its release, OpenAI's <a href="https://github.com/openai/whisper">Whisper</a> model quickly gained prominence due to its open licensing, competitive performance against proprietary models, and strong generalization capabilities. Despite being in the field for over two years, Whisper models continue to be highly relevant and are the go-to workhorse for many large-scale ASR systems deployed worldwide.</p>
-
-			<div class="column-list">
-				<div style="width:49%" class="column">
-					<div class="caption">Baseline</div>
-					<img src="figs/transcription_speed_default_opt.gif" />
-					
-				</div>
-				<div style="width:49%" class="column">
-					<div class="caption">Torch Compile + HQQ</div> 
-					<img src="figs/transcription_compile_hqq_opt.gif" />					
-				</div>
-
-			</div>
 		
 			<p>In this blog post, we explain the techniques we used to enhance the performance of the PyTorch based Whisper models. By leveraging transformers, implementing a <a href"https://github.com/huggingface/transformers/pull/30760"> static cache</a>, and utilizing <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">torch.compile</a>, we significantly accelerated the model's inference speed. Additionally, we employed <a href="https://github.com/mobiusml/hqq">HQQ</a> to quantize the Whisper models to 4 bits, preserving transcription quality with minimal degradation, as evaluated by Word Error Rate (WER) benchmarks. Our optimizations resulted in a <b>4.5x</b> speedup for non-quantized models and an impressive <b>6x</b> speedup for quantized models.  Moreover, we report detailed quantization results and found that Whisper can be run in extremely low-bit configurations.</p>
 
